@@ -1,4 +1,5 @@
 const { MongoClient } = require("mongodb");
+const uri = process.env.MONGO_URI || "mongodb://localhost:27017"; // Use environment variable or default
 
 class MovieController {
     constructor() {
@@ -26,36 +27,36 @@ class MovieController {
     async getMovies(req, res) {
         const query = req.query;  // Get query parameters from the request
 
-        try {
-            // Ensure the database is connected
-            if (!this.db) {
-                await this.connectToDatabase(); // Ensure connection is made
-            }
+    try {
+        // Connect to the MongoDB database and collection
+	const client = new MongoClient(uri)
+        const db = client.db('sample_mflix');
+        const moviesCollection = db.collection('movies');
 
-            const moviesCollection = this.db.collection('movies');
-            const filter = {};
+        // Filter query based on optional query parameters
+        const filter = {};
 
-            // Apply filters based on query parameters
-            if (query.genre) {
-                filter.genre = query.genre;
-            }
-            if (query.year) {
-                filter.year = parseInt(query.year, 10);
-            }
-            if (query.director) {
-                filter.director = query.director;
-            }
-
-            // Fetch the movies from MongoDB
-            const movies = await moviesCollection.find(filter).limit(10).toArray();
-
-            // Return the movies as a JSON response
-            res.json(movies);
-        } catch (err) {
-            console.error('Error fetching movies:', err);
-            res.status(500).json(['An error has occurred.']);
+        // Add filters for each query parameter
+        if (query.genre) {
+            filter.genre = query.genre;
         }
+        if (query.year) {
+            filter.year = parseInt(query.year, 10); // Convert to integer for year filtering
+        }
+        if (query.director) {
+            filter.director = query.director;
+        }
+
+        // Fetch the movies from MongoDB based on the filter
+        const movies = await moviesCollection.find(filter).limit(10).toArray();
+
+        // Return the movies as a JSON response
+        res.json(movies);
+    } catch (err) {
+        console.error('Error fetching movies:', err);
+        res.status(500).json(['An error has occurred.']);
     }
+}
 }
 
 module.exports = MovieController;

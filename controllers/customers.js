@@ -47,26 +47,13 @@ const getCustomerById = async (req, res) => {
 // Fetch customer details from the customer_list view by ID
 const getCustomerDetail = async (req, res) => {
     const { id } = req.params;
-
     try {
-        const query = `
-            SELECT *
-            FROM customer_list
-            WHERE ID = ?;
-        `;
-
-        const connection = await mysql.createConnection(dbConfig);
-        const [rows] = await connection.execute(query, [id]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ message: "Customer not found in the customer_list view." });
-        }
-
-        res.status(200).json(rows[0]); // Return the single row as JSON
-        await connection.end();
-    } catch (error) {
-        console.error("Error fetching customer detail from customer_list:", error);
-        res.status(500).json({ message: "An error occurred while fetching customer details." });
+	const connection = await mysql.createConnection(dbConfig);
+        const [customer] = await connection.query('SELECT * FROM customer WHERE customer_id = ?', [id]);
+        res.json(customer);
+    } catch (err) {
+        console.error('Error fetching customer:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 };
 

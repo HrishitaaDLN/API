@@ -13,20 +13,21 @@ const dbConfig = {
 // Get inventory IDs in stock for a specific film and store by calling the film_in_stock procedure
 const getInventoryInStock = async (req, res) => {
     const { film_id, store_id } = req.params;
+    // Get the third parameter from the query string, default to 1 if not provided
+    const thirdParam = req.query.thirdParam || 1;  // Example: Accepting thirdParam from query parameters
 
     try {
-        const query = `CALL film_in_stock(?, ?)`;
-        
-        const [rows] = await pool.execute(query, [film_id, store_id]);
+        // Call the stored procedure with three parameters
+	const connection = await mysql.createConnection(dbConfig);
 
-        if (rows[0].length === 0) {
-            return res.status(404).json({ message: "No inventory found for this film in the given store." });
-        }
+        const [result] = await connection.query('CALL film_in_stock(?, ?, ?)', [film_id, store_id, thirdParam]);
 
-        res.status(200).json(rows[0]); // Return the result set as JSON
-    } catch (error) {
-        console.error(`Error fetching inventory for film ${film_id} at store ${store_id}:`, error);
-        res.status(500).json({ message: "An error occurred while fetching the inventory." });
+        // Send the result as JSON response
+        res.json(result);
+    } catch (err) {
+        // Log and handle any errors that occur during the database query
+        console.error('Error fetching inventory in stock:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 };
 

@@ -23,24 +23,13 @@ const getAllFilms = async (req, res) => {
 
 // Function to fetch a single film by ID
 const getFilmById = async (req, res) => {
-    const { id } = req.params; // Extract the ID from request parameters
+     const { id } = req.params;
     try {
-        const connection = await mysql.createConnection(dbConfig);
-        
-        // Query to fetch the film with the specified ID
-        const [rows] = await connection.execute("SELECT * FROM film WHERE film_id = ?", [id]);
-        
-        await connection.end();
-        
-        if (rows.length === 0) {
-            return res.status(404).json(["Film not found."]);
-        }
-        
-        // Return the single Film as JSON
-        res.json(rows[0]);
-    } catch (error) {
-        console.error("Error fetching film by ID:", error.message);
-        res.status(500).json(["An error has occurred."]);
+        const [film] = await mysqlConnection.query('SELECT * FROM film WHERE film_id = ?', [id]);
+        res.json(film);
+    } catch (err) {
+        console.error('Error fetching film:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 };
 

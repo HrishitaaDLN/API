@@ -28,18 +28,12 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     try {
-        const connection = await mysql.createConnection(dbConfig);
-        const [rows] = await connection.execute("SELECT * FROM customer WHERE customer_id = ?", [id]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ message: "Customer not found." });
-        }
-
-        res.json(rows[0]); // Return the customer as JSON
-        await connection.end();
-    } catch (error) {
-        console.error(`Error fetching customer with ID ${id}:`, error);
-        res.status(500).json(["An error has occurred."]);
+	const connection = await mysql.createConnection(dbConfig);
+        const [customer] = await connection.query('SELECT * FROM customer WHERE customer_id = ?', [id]);
+        res.json(customer);
+    } catch (err) {
+        console.error('Error fetching customer:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 });
 

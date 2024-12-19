@@ -1,91 +1,80 @@
 const connectToDatabase = require("../config/db");
 const { ObjectId } = require("mongodb");
+const { MongoClient } = require("mongodb");
+const uri = process.env.MONGO_URI || "mongodb://localhost:27017"; // Use environment variable or default
 
 // Get all colors
 async function getColors(req, res) {
     try {
-        const db = await connectToDatabase();
-        const collection = db.collection("colors");
-        const colors = await collection.find().toArray();
-        res.status(200).json(colors);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json(["An error has occurred."]);
+	const client = new MongoClient(uri);
+    	await client.connect();
+    	dbInstance = client.db("cs480-project2");
+        const colorsCollection = client.collection('colors');
+        const colors = await colorsCollection.find().toArray();
+        res.json(colors);
+    } catch (err) {
+        console.error('Error fetching colors:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 }
 
 // Get a single color by ID
 async function getColorById(req, res) {
     try {
-        const { id } = req.params;
-        const db = await connectToDatabase();
-        const collection = db.collection("colors");
-        const color = await collection.findOne({ _id: new ObjectId(id) });
-
-        if (!color) {
-            return res.status(404).json(["Color not found."]);
-        }
-
-        res.status(200).json(color);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json(["An error has occurred."]);
+	const client = new MongoClient(uri);
+        const db = client.db('cs480-project2');
+        const colorsCollection = db.collection('colors');
+        const color = await colorsCollection.findOne({ _id: new ObjectId(req.params.id) });
+        res.json(color);
+    } catch (err) {
+        console.error('Error fetching color:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 }
 
 // Add a new color
 async function createColor(req, res) {
     try {
-        const newColor = req.body;
-        const db = await connectToDatabase();
-        const collection = db.collection("colors");
-        const result = await collection.insertOne(newColor);
+	const client = new MongoClient(uri);
+        const db = client.db('cs480-project2');
+        const colorsCollection = db.collection('colors');
+        const result = await colorsCollection.insertOne(req.body);
         res.status(201).json(result);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json(["An error has occurred."]);
+    } catch (err) {
+        console.error('Error inserting color:', err);
+        res.status(500).json(['An error has occurred.']);
     }
+
 }
 
 // Update a color by ID
 async function updateColor(req, res) {
     try {
-        const { id } = req.params;
-        const updatedColor = req.body;
-        const db = await connectToDatabase();
-        const collection = db.collection("colors");
-        const result = await collection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: updatedColor }
+        const client = new MongoClient(uri);
+        const db = client.db('cs480-project2');
+        const colorsCollection = db.collection('colors');
+        const result = await colorsCollection.updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: req.body }
         );
-
-        if (result.matchedCount === 0) {
-            return res.status(404).json(["Color not found."]);
-        }
-
-        res.status(200).json(result);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json(["An error has occurred."]);
+        res.json(result);
+    } catch (err) {
+        console.error('Error updating color:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 }
 
 // Delete a color by ID
 async function deleteColor(req, res) {
-    try {
-        const { id } = req.params;
-        const db = await connectToDatabase();
-        const collection = db.collection("colors");
-        const result = await collection.deleteOne({ _id: new ObjectId(id) });
-
-        if (result.deletedCount === 0) {
-            return res.status(404).json(["Color not found."]);
-        }
-
-        res.status(200).json(result);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json(["An error has occurred."]);
+       try {
+        const client = new MongoClient(uri);
+        const db = client.db('cs480-project2');
+        const colorsCollection = db.collection('colors');
+        const result = await colorsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        res.json(result);
+    } catch (err) {
+        console.error('Error deleting color:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 }
 

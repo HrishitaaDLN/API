@@ -28,20 +28,14 @@ router.get("/", async (req, res) => {
 
 // Get a specific actor by ID
 router.get("/:id", async (req, res) => {
-    const { id } = req.params;
+     const { id } = req.params;
     try {
-        const connection = await mysql.createConnection(dbConfig);
-        const [rows] = await connection.execute("SELECT * FROM actor WHERE actor_id = ?", [id]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ message: "Actor not found." });
-        }
-
-        res.json(rows[0]); // Return the actor as JSON
-        await connection.end();
-    } catch (error) {
-        console.error(`Error fetching actor with ID ${id}:`, error);
-        res.status(500).json(["An error has occurred."]);
+	const connection = await mysql.createConnection(dbConfig);
+        const [actor] = await connection.query('SELECT * FROM actor WHERE actor_id = ?', [id]);
+        res.json(actor);
+    } catch (err) {
+        console.error('Error fetching actor:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 });
 
@@ -93,24 +87,15 @@ router.get("/films/:id/actors", async (req, res) => {
 
 // Get actor details from the actor_info view by ID
 router.get("/:id/detail", async (req, res) => {
-    const { id } = req.params;
+
+const { id } = req.params;
     try {
-        const query = `
-            SELECT *
-            FROM actor_info
-            WHERE actor_id = ?;
-        `;
-
-        const [rows] = await pool.execute(query, [id]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ message: "Actor not found in the actor_info view." });
-        }
-
-        res.status(200).json(rows[0]); // Return the single row as JSON
-    } catch (error) {
-        console.error(`Error fetching actor details with ID ${id}:`, error);
-        res.status(500).json({ message: "An error occurred while fetching actor details." });
+	const connection = await mysql.createConnection(dbConfig);
+        const [details] = await connection.query('SELECT * FROM actor_info WHERE actor_id = ?', [id]);
+        res.json(details);
+    } catch (err) {
+        console.error('Error fetching actor details:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 });
 

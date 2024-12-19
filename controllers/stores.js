@@ -23,24 +23,13 @@ const getAllStores = async (req, res) => {
 
 // Function to fetch a single store by ID
 const getStoreById = async (req, res) => {
-    const { id } = req.params; // Extract the ID from request parameters
+     const { id } = req.params;
     try {
-        const connection = await mysql.createConnection(dbConfig);
-        
-        // Query to fetch the store with the specified ID
-        const [rows] = await connection.execute("SELECT * FROM store WHERE store_id = ?", [id]);
-        
-        await connection.end();
-        
-        if (rows.length === 0) {
-            return res.status(404).json(["Store not found."]);
-        }
-        
-        // Return the single Store as JSON
-        res.json(rows[0]);
-    } catch (error) {
-        console.error("Error fetching store by ID:", error.message);
-        res.status(500).json(["An error has occurred."]);
+        const [store] = await mysqlConnection.query('SELECT * FROM store WHERE store_id = ?', [id]);
+        res.json(store);
+    } catch (err) {
+        console.error('Error fetching store:', err);
+        res.status(500).json(['An error has occurred.']);
     }
 };
 
